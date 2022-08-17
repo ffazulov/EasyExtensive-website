@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/css_v.1.1.css') }}">
+    <title>EasyExtensive</title>
+</head>
+<body>
+
+<textarea class="input_textarea" placeholder="Введите сюда свой текст..." id="input_field" cols="60" rows="30"></textarea>
+<div class="output_block" id="output_field"></div>
+
+<button class="shiny_button" id="converting_button" clicked="No" onclick="create_spans()" style="top: 40px">Converting</button>
+<button class="shiny_button" id="new_converting_button" onclick="click_new_converting()" style="top: 20px; display: none">New converting</button>
+<button class="shiny_button" id="translate_button" onclick="translate_words()" style="top: 20px; display: none">Translate</button>
+<button class="shiny_button" id="back_button" onclick="click_on_back()" style="top: 40px; display: none">Back</button>
+<button class="shiny_button" id="button_copy" onclick="copy_text()" style="top: 60px; display: block">Copy text</button>
+
+<div class="rules_block" id="frame_rules">
+    <h1 class="title_in_rules">Что же делать?</h1>
+    <h2 class="text_rules", id="first_rule">1. Вносите текст, над которым будем работать, в окошко слева, нажимаете "Converting" и приступаете к работе.
+    Если вы уже редактировали текст и вернулись снова, то у вас есть возможность убрать выделенные слова нажатием на кнопку "New converting",
+        либо продолжить работу с уже выделенными словами, нажав на кнопку "Converting".</h2>
+    <h3 class="text_rules", id="second_rule", style="display: none">2. Нажимайте на незнакомые слова, тем самым их выделяя, после окончания выделения нажмите на "Translate".
+        Если вы увидели опечатку в тексте, то можете вернуться к редактированию, нажав на кнопку "Back". Учтите, если вы отредактируете выделеное слово, то выделение отредактированного слова пропадет!</h3>
+    <h4 class="text_rules", id="third_rule", style="display: none">3. Теперь вы модете скопировать все выделенные слова и перенести их в свой блокнот, вы молодец!!!</h4>
+</div>
+
+<script>
+    function copy_text () {
+        text = output_field.textContent
+        alert(text)
+    }
+
+    function translate_words () {
+        change_rules(third_rule)
+
+        let saved_words = save_special_words()
+
+        output_field.innerHTML = ''
+
+
+        delete_old_words()
+
+        for (i = 0; i < saved_words.length; i++) {
+            elemText = document.createTextNode(saved_words[i] + "\n")
+            output_field.appendChild(elemText)
+        }
+    }
+
+    function hidden_blocks (hidden=true) {
+        if (hidden) {
+            output_field.setAttribute("style", "display: block;")
+            input_field.setAttribute("style", "display: none;")
+            converting_button.setAttribute("style", "display: none; top: 40px;")
+            back_button.setAttribute("style", "display: block; top: 40px;")
+            translate_button.setAttribute("style", "display: block; top: 20px;")
+            new_converting_button.setAttribute("style", "display: none; top: 20px;")
+        } else {
+            output_field.setAttribute("style", "display: none;")
+            input_field.setAttribute("style", "display: block;")
+            converting_button.setAttribute("style", "display: block; top: 40px;")
+            back_button.setAttribute("style", "display: none; top: 40px;")
+            translate_button.setAttribute("style", "display: none; top: 20px;")
+            new_converting_button.setAttribute("style", "display: block; top: 20px;")
+        }
+    }
+
+    function click_on_back () {
+        hidden_blocks(false)
+        change_rules(first_rule)
+    }
+
+    function change_color (element_id) {
+        if (element_id.getAttribute("color") == "white") {
+            element_id.style.background = "red"
+            element_id.setAttribute("color", "red")
+        } else {
+            element_id.style.background = "none"
+            element_id.setAttribute("color", "white")
+        }
+    }
+
+    function save_special_words () {
+        let saved_words = []
+        let old_span_words = document.querySelectorAll("div > span")
+        for (i = 0; i < old_span_words.length; i++) {
+            if (old_span_words[i].getAttribute("color") == "red") {
+                saved_words.push(old_span_words[i].textContent)
+            }
+        }
+        return saved_words
+    }
+
+    function create_span (word) {
+        elem = document.createElement("span")
+        elem.setAttribute("onclick", "change_color(this)")
+        elem.setAttribute("color", "white")
+        elemText = document.createTextNode(word + " ")
+        elem.appendChild(elemText)
+
+        return elem
+    }
+
+    function check_words(lst_words, span_word) {
+        var word = span_word.textContent
+
+        if (lst_words.includes(word)) {
+            span_word.setAttribute("color", "red")
+            span_word.style.background = "red"
+            return span_word
+        } else {
+            return span_word
+        }
+    }
+
+    function delete_old_words () {
+        var spans = document.querySelectorAll("div > span")
+        for (let i = 0; i < spans.length; i++) {
+            spans[i].remove()
+        }
+    }
+
+    function click_new_converting () {
+        converting_button.setAttribute("clicked", "No")
+
+        delete_old_words()
+        create_spans()
+    }
+
+    function change_rules (number_rule) {
+        first_rule.setAttribute("style", "display: none")
+        second_rule.setAttribute("style", "display: none")
+        third_rule.setAttribute("style", "display: none")
+
+        number_rule.setAttribute("style", "display: block")
+    }
+
+    function create_spans () {
+        change_rules(second_rule)
+
+        var text_input = document.getElementById('input_field').value
+        let input_words= text_input.split( "\n" ).join( " " ).split( " " )
+
+        hidden_blocks()
+
+        var click = converting_button.getAttribute("clicked") == "No"
+        converting_button.setAttribute("clicked", "Yes")
+
+        if (click) {
+            for (let i = 0; i < input_words.length; i++) {
+                elem = create_span(input_words[i])
+                output_field.appendChild(elem)
+            }
+        } else {
+            let saved_words = save_special_words()
+            delete_old_words()
+            output_field.innerHTML = ''
+
+            for (let i = 0; i < input_words.length; i++) {
+                elem = create_span(input_words[i])
+
+                span_word = check_words(saved_words, elem)
+                output_field.appendChild(span_word)
+            }
+        }
+    }
+
+</script>
+</body>
+</html>
